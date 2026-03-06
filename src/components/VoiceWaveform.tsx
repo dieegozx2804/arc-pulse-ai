@@ -13,9 +13,7 @@ const VoiceWaveform = ({ isActive, barCount = 32 }: VoiceWaveformProps) => {
           key={i}
           className="w-[2px] rounded-full bg-primary"
           animate={{
-            height: isActive
-              ? [4, Math.random() * 28 + 4, 4]
-              : 4,
+            height: isActive ? [4, Math.random() * 28 + 4, 4] : 4,
             opacity: isActive ? [0.4, 1, 0.4] : 0.2,
           }}
           transition={{
