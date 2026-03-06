@@ -85,7 +85,7 @@
 
 @keyframes glow-pulse {
   0%, 100% { 
-    box-shadow: 0 0 20px hsl(190 100% 50% / 0.3), 0 0 60px hsl(190 100% 50% / 0.1);
+    box-shadow: 0 0 20px hsl(140, 100%, 8%), 0 0 60px hsl(190 100% 50% / 0.1);
   }
   50% { 
     box-shadow: 0 0 30px hsl(190 100% 50% / 0.5), 0 0 80px hsl(190 100% 50% / 0.2);
