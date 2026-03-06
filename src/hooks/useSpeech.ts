@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 interface UseSpeechReturn {
   isListening: boolean;
@@ -18,28 +18,76 @@ export function useSpeech(): UseSpeechReturn {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState("");
   const recognitionRef = useRef<any>(null);
+  const isListeningRef = useRef(false);
   const supported = !!SpeechRecognition && !!window.speechSynthesis;
 
+  useEffect(() => {
+    return () => {
+      isListeningRef.current = false;
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+    };
+  }, []);
+
   const startListening = useCallback(() => {
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition || isListeningRef.current) return;
+
     const recognition = new SpeechRecognition();
     recognition.lang = "pt-BR";
     recognition.interimResults = false;
-    recognition.continuous = false;
+    recognition.continuous = true;
 
     recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
-      setTranscript(text);
+      const last = event.results[event.results.length - 1];
+      if (last.isFinal) {
+        const text = last[0].transcript;
+        console.log("Speech recognized:", text);
+        setTranscript(text);
+      }
     };
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = () => setIsListening(false);
+
+    recognition.onend = () => {
+      console.log("Speech recognition ended");
+      if (isListeningRef.current) {
+        console.log("Restarting speech recognition...");
+        try {
+          recognition.start();
+        } catch (e) {
+          console.error("Failed to restart:", e);
+          isListeningRef.current = false;
+          setIsListening(false);
+        }
+      } else {
+        setIsListening(false);
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.error("Speech error:", event.error);
+      if (event.error === "not-allowed" || event.error === "service-not-available") {
+        isListeningRef.current = false;
+        setIsListening(false);
+      }
+      // "no-speech" and "aborted" will auto-restart via onend
+    };
 
     recognitionRef.current = recognition;
-    recognition.start();
+    isListeningRef.current = true;
     setIsListening(true);
+
+    try {
+      recognition.start();
+      console.log("Speech recognition started");
+    } catch (e) {
+      console.error("Failed to start speech recognition:", e);
+      isListeningRef.current = false;
+      setIsListening(false);
+    }
   }, []);
 
   const stopListening = useCallback(() => {
+    console.log("Stopping speech recognition");
+    isListeningRef.current = false;
     recognitionRef.current?.stop();
     setIsListening(false);
   }, []);
@@ -51,8 +99,7 @@ export function useSpeech(): UseSpeechReturn {
     utterance.lang = "pt-BR";
     utterance.rate = 1.05;
     utterance.pitch = 0.9;
-    
-    // Try to find a good voice
+
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v => v.lang.startsWith('pt') && v.name.toLowerCase().includes('google'));
     if (preferred) utterance.voice = preferred;
