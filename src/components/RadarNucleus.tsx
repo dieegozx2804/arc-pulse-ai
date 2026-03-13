@@ -55,7 +55,7 @@ const RadarNucleus = ({ isListening = false, isProcessing = false, size = 280, o
 
       // Radar sweep
       const sweepAngle = angleRef.current;
-      const gradient = ctx.createConicalGradient(sweepAngle, cx, cy);
+      const gradient = ctx.createConicGradient(sweepAngle, cx, cy);
       gradient.addColorStop(0, `hsla(152, 100%, 40%, ${baseAlpha * 1.5})`);
       gradient.addColorStop(0.15, `hsla(152, 100%, 40%, 0)`);
       gradient.addColorStop(1, `hsla(152, 100%, 40%, 0)`);
